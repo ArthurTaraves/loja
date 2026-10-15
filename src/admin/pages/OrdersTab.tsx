@@ -44,7 +44,7 @@ export function OrdersTab() {
 
   const handleStatusChange = async (order: Order, status: OrderStatus) => {
     try {
-      await updateOrderStatus(order, status);
+      await updateOrderStatus(order.id, status);
       reload();
     } catch (error) {
       console.error('Falha ao atualizar status do pedido:', error);
