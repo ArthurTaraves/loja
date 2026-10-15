@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minha Loja</title>
+    <meta name="description" content="Confira nossos produtos." />
+
+    <!--
+      Tags Open Graph estáticas: o site é uma SPA (tudo renderizado no navegador),
+      então bots de preview de link (WhatsApp, Facebook, Twitter/X...) NÃO esperam
+      o JavaScript rodar e leem só o HTML bruto. Por isso esses valores não vêm do
+      painel admin — troque manualmente aqui se quiser personalizar o preview de
+      link compartilhado. O <title> e a <meta name="description"> acima, por outro
+      lado, são reescritos em tempo real pelo componente <Seo> com os dados de
+      settings/store assim que o site carrega no navegador.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Minha Loja" />
+    <meta property="og:description" content="Confira nossos produtos." />
+    <meta property="og:image" content="/og-image.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

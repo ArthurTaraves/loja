@@ -1,0 +1,85 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidOrder(data) {
+      return data.status == 'novo'
+        && data.stockDecremented == false
+        && data.customer is map
+        && data.customer.name is string && data.customer.name.size() > 0
+        && data.customer.phone is string && data.customer.phone.size() > 0
+        && data.items is list && data.items.size() > 0
+        && data.total is number && data.total > 0;
+    }
+
+    // Configurações da loja (nome, cores, whatsapp, redes sociais, rodapé, SEO...).
+    // Leitura pública pois todo o site se baseia nesse documento.
+    match /settings/store {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Produto inativo nunca é lido por quem não é admin. Isso só funciona porque
+    // toda consulta pública no app inclui where('active','==',true) — sem esse
+    // filtro na query, o Firestore recusa a consulta inteira (não dá pra provar
+    // de antemão que nenhum resultado teria active == false).
+    match /products/{productId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Qualquer visitante pode criar um pedido (checkout sem login), com validação
+    // básica de schema. Só admin lê, atualiza status ou apaga.
+    match /orders/{orderId} {
+      allow create: if isValidOrder(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Ninguém escreve aqui pelo client, exceto a criação atômica do primeiro admin
+    // (ver bootstrap abaixo). Cada usuário só pode ler o próprio registro, para
+    // o app saber se ele é admin.
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if isAdmin();
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && !exists(/databases/$(database)/documents/system/bootstrap)
+        && existsAfter(/databases/$(database)/documents/system/bootstrap)
+        && getAfter(/databases/$(database)/documents/system/bootstrap).data.done == true;
+      allow update, delete: if false;
+    }
+
+    // Bootstrap do primeiro admin: admins/{uid} e system/bootstrap só são aceitos
+    // se forem gravados JUNTOS no mesmo writeBatch — cada rule exige que o outro
+    // documento exista "depois" do batch (existsAfter/getAfter), então nenhum dos
+    // dois é aceito sozinho. Depois que system/bootstrap existe, a porta se fecha
+    // para sempre (create verifica !exists(...) antes de tudo).
+    match /system/bootstrap {
+      allow read: if true; // o client precisa saber se deve mostrar o setup ou o login
+      allow create: if request.auth != null
+        && !exists(/databases/$(database)/documents/system/bootstrap)
+        && existsAfter(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
