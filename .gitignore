@@ -15,6 +15,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Vínculo local com um projeto Firebase específico — cada clone deste
+# template gera o seu via `firebase use --add` (ver README).
+.firebaserc
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
