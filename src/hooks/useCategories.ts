@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { listActiveCategories } from '../services/categories';
+import { logQueryError } from '../utils/logging';
 import type { Category } from '../types';
 
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -12,8 +14,10 @@ export function useCategories() {
       .then((data) => {
         if (!cancelled) setCategories(data);
       })
-      .catch((error) => {
-        console.error('Falha ao carregar categorias:', error);
+      .catch((err) => {
+        if (cancelled) return;
+        logQueryError('categorias', err);
+        setError(err);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -23,5 +27,5 @@ export function useCategories() {
     };
   }, []);
 
-  return { categories, loading };
+  return { categories, loading, error };
 }

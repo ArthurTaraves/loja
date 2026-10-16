@@ -2,16 +2,23 @@ import { useEffect, useState } from 'react';
 import { listFeaturedProducts } from '../../services/products';
 import type { Product } from '../../types';
 import { ProductCard } from '../product/ProductCard';
+import { DevQueryError } from '../common/DevQueryError';
+import { logQueryError } from '../../utils/logging';
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     listFeaturedProducts()
       .then(setProducts)
-      .catch((error) => console.error('Falha ao carregar destaques:', error));
+      .catch((err) => {
+        logQueryError('produtos em destaque', err);
+        setError(err);
+      });
   }, []);
 
+  if (error) return <DevQueryError context="produtos em destaque" />;
   if (products.length === 0) return null;
 
   return (

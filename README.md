@@ -54,12 +54,23 @@ VITE_CLOUDINARY_CLOUD_NAME=...
 VITE_CLOUDINARY_UPLOAD_PRESET=...
 ```
 
-### 5. Publicar as regras do Firestore
+### 5. Publicar as regras e os índices do Firestore
 
-O arquivo `firestore.rules` na raiz do projeto já contém as regras prontas. Publique de uma das duas formas:
+O projeto já vem com `firestore.rules` (regras de segurança) e `firestore.indexes.json`
+(índices compostos) prontos, referenciados pelo `firebase.json` na raiz. **Os dois
+precisam ser publicados** — sem os índices, a home e a listagem de produtos
+carregam vazias, mesmo com produtos cadastrados (ver "Limitações conhecidas" abaixo).
 
-- **Console** (mais simples): Firestore Database → aba **Regras** → cole o conteúdo de `firestore.rules` → **Publicar**.
-- **CLI**: `npx firebase-tools login`, depois `npx firebase-tools deploy --only firestore:rules` (primeira vez, rode `npx firebase-tools init firestore` e aponte para o `firestore.rules` existente).
+- **CLI (recomendado, publica os dois de uma vez)**:
+  ```bash
+  npx firebase-tools login
+  npx firebase-tools use --add          # escolha o projeto que você criou no passo 2
+  npx firebase-tools deploy --only firestore:rules,firestore:indexes
+  ```
+- **Console** (alternativa só para as regras): Firestore Database → aba **Regras** → cole o conteúdo de `firestore.rules` → **Publicar**. Os índices compostos do `firestore.indexes.json`, nesse caso, você recria manualmente em **Índices → Criar índice** (ou deixa a loja mostrar o erro com o link de criação automática, como descrito abaixo, e clica nele).
+
+A criação dos índices no Firebase não é instantânea — leva de alguns segundos a
+poucos minutos (o console mostra o status "Compilando").
 
 ### 6. Rodar localmente e fazer o primeiro acesso
 
@@ -93,7 +104,7 @@ próximos acessos a `/admin` pedem login normal.
 
 - **Excluir foto no admin não apaga do Cloudinary.** O upload é "unsigned" (direto do navegador), e apagar de verdade exige a API secret do Cloudinary, que nunca deve ficar no código do site. "Remover" no admin só tira a referência do Firestore — o arquivo continua armazenado no Cloudinary. De vez em quando, limpe manualmente pelo [Media Library](https://cloudinary.com/documentation/media_library_widget) do Cloudinary, ou ignore se o plano gratuito (25GB) for suficiente pro seu volume de fotos.
 - **Preview de link (WhatsApp/Facebook/Twitter) é estático.** O site é uma SPA (uma página HTML só, que vira loja via JavaScript) — bots de preview de link não esperam o JavaScript rodar, então eles leem as tags `og:title`/`og:description`/`og:image` fixas no `index.html`, não os dados dinâmicos de `settings/store`. Se quiser personalizar, edite essas tags direto no `index.html` (inclua uma imagem em `public/og-image.png`, 1200x630px, para a tag `og:image` funcionar). O `<title>` da aba do navegador, esse sim, é dinâmico.
-- **Primeiro uso de filtros/categoria pode mostrar um erro no console pedindo um índice do Firestore.** Isso é normal: o Firestore cria índices compostos sob demanda. O erro no console do navegador vem com um link direto — clique nele, confirme a criação no console do Firebase, espere alguns minutos e a consulta volta a funcionar sozinha.
+- **Loja aparece vazia (home sem produtos/banners, lista de produtos sem nada) se os índices do Firestore não foram publicados.** As consultas públicas filtram por `active` e ordenam por `createdAt`/`order` (ou filtram por categoria/destaque também), e o Firestore exige um índice composto pra cada combinação dessas — é exatamente o que o passo 5 publica. Se você pulou esse passo (ou ele falhou), a consulta dá erro em vez de voltar vazia de verdade: em **modo de desenvolvimento** (`npm run dev`) aparece um aviso amarelo na própria tela avisando qual consulta falhou; em produção esse aviso não some pro cliente, mas sempre fica logado no **console do navegador** (F12), e o próprio erro do Firebase ali traz um link que cria o índice faltante automaticamente. De qualquer forma, o jeito certo de resolver é rodar `firebase deploy --only firestore:rules,firestore:indexes` (passo 5) — o link do erro é só um atalho pra quando algo ficar pra trás.
 
 ## Tour pelo painel `/admin`
 
@@ -118,8 +129,10 @@ src/
   components/   componentes de UI (layout, home, product, cart, common)
   pages/        páginas públicas (Home, ProductList, ProductDetail, CartPage...)
   admin/        painel administrativo (login, setup inicial, abas)
-  utils/        formatação de moeda, slug, validação de telefone, mensagem do WhatsApp
-firestore.rules
+  utils/        formatação de moeda, slug, validação de telefone, mensagem do WhatsApp, log de erro de consulta
+firebase.json           aponta pro firestore.rules e firestore.indexes.json
+firestore.rules         regras de segurança
+firestore.indexes.json  índices compostos das consultas públicas (ver passo 5)
 ```
 
 ## Scripts

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
+import { DevQueryError } from '../common/DevQueryError';
 
 export function CategoryGrid() {
-  const { categories } = useCategories();
+  const { categories, error } = useCategories();
 
+  if (error) return <DevQueryError context="categorias" />;
   if (categories.length === 0) return null;
 
   return (

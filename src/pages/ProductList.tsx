@@ -3,16 +3,17 @@ import { useSearchParams } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
 import { useProducts } from '../hooks/useProducts';
 import { ProductCard } from '../components/product/ProductCard';
+import { DevQueryError } from '../components/common/DevQueryError';
 
 export function ProductList() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categorySlug = searchParams.get('categoria') ?? '';
   const [search, setSearch] = useState('');
 
-  const { categories } = useCategories();
+  const { categories, error: categoriesError } = useCategories();
   const activeCategory = categories.find((c) => c.slug === categorySlug);
 
-  const { products, loading } = useProducts(activeCategory?.id);
+  const { products, loading, error: productsError } = useProducts(activeCategory?.id);
 
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -67,6 +68,9 @@ export function ProductList() {
           ))}
         </div>
       </div>
+
+      {categoriesError ? <DevQueryError context="categorias" /> : null}
+      {productsError ? <DevQueryError context="produtos" /> : null}
 
       {loading ? (
         <p className="text-secondary">Carregando produtos...</p>

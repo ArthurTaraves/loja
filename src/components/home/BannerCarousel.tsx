@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { listActiveBanners } from '../../services/banners';
 import type { Banner } from '../../types';
+import { DevQueryError } from '../common/DevQueryError';
+import { logQueryError } from '../../utils/logging';
 
 function BannerSlide({ banner }: { banner: Banner }) {
   const image = (
@@ -22,11 +24,15 @@ function BannerSlide({ banner }: { banner: Banner }) {
 export function BannerCarousel() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [index, setIndex] = useState(0);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     listActiveBanners()
       .then(setBanners)
-      .catch((error) => console.error('Falha ao carregar banners:', error));
+      .catch((err) => {
+        logQueryError('banners', err);
+        setError(err);
+      });
   }, []);
 
   useEffect(() => {
@@ -37,6 +43,7 @@ export function BannerCarousel() {
     return () => clearInterval(timer);
   }, [banners.length]);
 
+  if (error) return <DevQueryError context="banners" />;
   if (banners.length === 0) return null;
 
   return (

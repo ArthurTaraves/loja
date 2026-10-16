@@ -7,6 +7,8 @@ import { VariationSelector } from '../components/product/VariationSelector';
 import { useCart } from '../hooks/useCart';
 import type { VariationSelection } from '../contexts/CartContext';
 import { formatBRL } from '../utils/currency';
+import { DevQueryError } from '../components/common/DevQueryError';
+import { logQueryError } from '../utils/logging';
 
 function stockFor(product: Product, selected: VariationSelection): number | null {
   if (!product.variations || product.variations.length === 0) {
@@ -25,6 +27,7 @@ export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
   const [selected, setSelected] = useState<VariationSelection>({});
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -33,14 +36,30 @@ export function ProductDetail() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
+    setError(null);
     getProductBySlug(slug)
       .then(setProduct)
-      .catch((error) => console.error('Falha ao carregar produto:', error))
+      .catch((err) => {
+        logQueryError('produto', err);
+        setError(err);
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 
   if (loading) {
     return <p className="mx-auto max-w-5xl px-4 py-10 text-secondary sm:px-6">Carregando...</p>;
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+        <DevQueryError context="o produto" />
+        <p className="text-secondary">Não foi possível carregar este produto agora.</p>
+        <Link to="/produtos" className="text-primary underline">
+          Voltar para produtos
+        </Link>
+      </div>
+    );
   }
 
   if (!product) {
