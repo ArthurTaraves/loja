@@ -48,7 +48,7 @@ export function AdminLayout() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row">
         <nav className="flex gap-2 overflow-x-auto lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-visible">
           {TABS.map((tab) => (
-            <NavLink key={tab.to} to={tab.to} className={tabClass}>
+            <NavLink key={tab.to} to={`/admin/${tab.to}`} className={tabClass}>
               {tab.label}
             </NavLink>
           ))}
@@ -56,7 +56,7 @@ export function AdminLayout() {
 
         <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
           <Routes>
-            <Route index element={<Navigate to="aparencia" replace />} />
+            <Route index element={<Navigate to="/admin/aparencia" replace />} />
             <Route path="aparencia" element={<AppearanceTab />} />
             <Route path="banners" element={<BannersTab />} />
             <Route path="produtos" element={<ProductsTab />} />
