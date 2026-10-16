@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type OrderStatus = 'novo' | 'confirmado' | 'enviado' | 'concluido' | 'cancelado';
 
 export interface OrderItem {
@@ -20,11 +22,14 @@ export interface OrderCustomer {
 
 export interface Order {
   id: string;
+  /** Número sequencial amigável (1, 2, 3...), atribuído em transação via system/orderCounter. */
+  orderNumber: number;
   items: OrderItem[];
   total: number;
   customer: OrderCustomer;
   status: OrderStatus;
   stockDecremented: boolean;
-  createdAt: number;
-  updatedAt: number;
+  /** Sempre gravado com serverTimestamp() — as rules exigem createdAt == request.time na criação. */
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

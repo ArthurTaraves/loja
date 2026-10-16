@@ -5,6 +5,7 @@ import {
   validateImageFile,
   type CloudinaryUploadResult,
 } from '../../services/cloudinary';
+import { optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 interface ImageUploaderProps {
   label?: string;
@@ -51,7 +52,11 @@ export function ImageUploader({ label, recommendedSize, value, onChange }: Image
 
       {value?.url ? (
         <div className="flex items-center gap-3">
-          <img src={value.url} alt="" className="h-20 w-20 rounded-md border border-gray-200 object-cover" />
+          <img
+            src={optimizedImageUrl(value.url, 160)}
+            alt=""
+            className="h-20 w-20 rounded-md border border-gray-200 object-cover"
+          />
           <div className="flex flex-col gap-1">
             <button
               type="button"

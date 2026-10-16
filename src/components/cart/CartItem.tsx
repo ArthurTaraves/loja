@@ -1,5 +1,6 @@
 import type { CartLine } from '../../contexts/CartContext';
 import { formatBRL } from '../../utils/currency';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 interface CartItemProps {
   line: CartLine;
@@ -15,7 +16,12 @@ export function CartItem({ line, onUpdateQuantity, onRemove }: CartItemProps) {
     <div className="flex gap-3 border-b border-secondary/20 py-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-secondary/10">
         {cover ? (
-          <img src={cover} alt={line.product.name} className="h-full w-full object-cover" />
+          <img
+            src={optimizedImageUrl(cover, IMAGE_WIDTH.cartThumb)}
+            alt={line.product.name}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
         ) : null}
       </div>
 

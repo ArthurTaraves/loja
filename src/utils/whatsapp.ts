@@ -5,6 +5,7 @@ export function buildWhatsAppUrl(phone: string, message: string): string {
 }
 
 export interface OrderMessageData {
+  pedido: string;
   nome: string;
   itens: string;
   total: string;
@@ -13,6 +14,7 @@ export interface OrderMessageData {
 
 export function buildOrderMessage(template: string, data: OrderMessageData): string {
   return template
+    .replaceAll('{pedido}', data.pedido)
     .replaceAll('{nome}', data.nome)
     .replaceAll('{itens}', data.itens)
     .replaceAll('{total}', data.total)

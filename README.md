@@ -100,10 +100,37 @@ próximos acessos a `/admin` pedem login normal.
 > 404, porque o site é uma SPA e só existe fisicamente um `index.html`; o React
 > Router é quem decide o resto no navegador.
 
+### 8. (Opcional) Proteger o Firestore com Firebase App Check
+
+Sem isso o site funciona normal — é uma camada extra pra impedir que *scripts*
+fora do seu domínio chamem o Firestore diretamente (ex: alguém automatizando a
+criação de pedidos falsos, ignorando o site). Recomendado antes de divulgar a
+loja de verdade, mas dá pra configurar a qualquer momento.
+
+1. **Criar a chave do reCAPTCHA v3**: acesse o
+   [admin do reCAPTCHA](https://www.google.com/recaptcha/admin/create), escolha
+   **reCAPTCHA v3**, cadastre o domínio do seu site (e `localhost` se quiser
+   testar em dev). Você recebe duas chaves — guarde as duas, mas só a **site
+   key** (a pública) vai pro `.env`.
+2. **Ativar o App Check no Firebase**: console do Firebase → **App Check** →
+   selecione seu app Web → **Registrar** → provedor **reCAPTCHA v3** → cole a
+   site key (a secret key o próprio Firebase pede numa tela separada, ligada
+   à conta do Google Cloud do reCAPTCHA — siga o fluxo que o console mostra).
+3. Adicione `VITE_RECAPTCHA_SITE_KEY=<sua site key>` no `.env` (e nas
+   variáveis de ambiente da Vercel) e rode `npm run build` de novo / faça
+   redeploy.
+4. **Não ative o "Enforcement" ainda.** Depois de alguns pedidos/acessos
+   reais, volte em **App Check → Firestore** no console: ele mostra um
+   gráfico de requisições "verificadas" vs "não verificadas". Só vire o
+   interruptor de **Enforce** quando a maioria das requisições reais
+   aparecer como verificada — ativar cedo demais (ou com a site key errada)
+   pode bloquear seus próprios clientes de fazer pedidos.
+
 ## Limitações conhecidas (pra você não ser pego de surpresa)
 
 - **Excluir foto no admin não apaga do Cloudinary.** O upload é "unsigned" (direto do navegador), e apagar de verdade exige a API secret do Cloudinary, que nunca deve ficar no código do site. "Remover" no admin só tira a referência do Firestore — o arquivo continua armazenado no Cloudinary. De vez em quando, limpe manualmente pelo [Media Library](https://cloudinary.com/documentation/media_library_widget) do Cloudinary, ou ignore se o plano gratuito (25GB) for suficiente pro seu volume de fotos.
 - **Preview de link (WhatsApp/Facebook/Twitter) é estático.** O site é uma SPA (uma página HTML só, que vira loja via JavaScript) — bots de preview de link não esperam o JavaScript rodar, então eles leem as tags `og:title`/`og:description`/`og:image` fixas no `index.html`, não os dados dinâmicos de `settings/store`. Se quiser personalizar, edite essas tags direto no `index.html` (inclua uma imagem em `public/og-image.png`, 1200x630px, para a tag `og:image` funcionar). O `<title>` da aba do navegador, esse sim, é dinâmico.
+- **Pedido tem limites fixos nas regras do Firestore**: até 50 itens no carrinho, nome do cliente até 100 caracteres, telefone até 20, endereço até 300 — tudo validado tanto no formulário quanto em `firestore.rules`. É deliberado (evita abuso), mas se algum cliente legítimo esbarrar nisso um dia, os limites estão na função `isValidOrder` do `firestore.rules`.
 - **Loja aparece vazia (home sem produtos/banners, lista de produtos sem nada) se os índices do Firestore não foram publicados.** As consultas públicas filtram por `active` e ordenam por `createdAt`/`order` (ou filtram por categoria/destaque também), e o Firestore exige um índice composto pra cada combinação dessas — é exatamente o que o passo 5 publica. Se você pulou esse passo (ou ele falhou), a consulta dá erro em vez de voltar vazia de verdade: em **modo de desenvolvimento** (`npm run dev`) aparece um aviso amarelo na própria tela avisando qual consulta falhou; em produção esse aviso não some pro cliente, mas sempre fica logado no **console do navegador** (F12), e o próprio erro do Firebase ali traz um link que cria o índice faltante automaticamente. De qualquer forma, o jeito certo de resolver é rodar `firebase deploy --only firestore:rules,firestore:indexes` (passo 5) — o link do erro é só um atalho pra quando algo ficar pra trás.
 
 ## Tour pelo painel `/admin`
@@ -114,8 +141,8 @@ próximos acessos a `/admin` pedem login normal.
 | Banners | Carrossel da home (imagem desktop/mobile, link, ordem, ativo) |
 | Produtos | Fotos, preço, promoção, variações (ex: tamanho) com estoque por opção, destaque |
 | Categorias | Nome, foto opcional, ordem, ativo |
-| Pedidos | Lista de pedidos feitos pelo site, com troca de status (debita/devolve estoque automaticamente ao confirmar/cancelar) |
-| Contato e WhatsApp | Número, mensagem padrão do botão flutuante, mensagem modelo do pedido (variáveis `{nome}`, `{itens}`, `{total}`, `{endereco}`), redes sociais |
+| Pedidos | Lista de pedidos feitos pelo site (com número sequencial `#0001`, `#0002`...), troca de status (debita/devolve estoque automaticamente ao confirmar/cancelar) |
+| Contato e WhatsApp | Número, mensagem padrão do botão flutuante, mensagem modelo do pedido (variáveis `{pedido}`, `{nome}`, `{itens}`, `{total}`, `{endereco}`), redes sociais |
 | Rodapé e SEO | Texto do rodapé, endereço, horário, título/descrição da página |
 
 ## Estrutura do projeto

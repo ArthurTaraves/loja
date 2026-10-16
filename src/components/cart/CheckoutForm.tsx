@@ -5,6 +5,7 @@ import { createOrder } from '../../services/orders';
 import { buildOrderMessage, buildWhatsAppUrl } from '../../utils/whatsapp';
 import { formatBRL } from '../../utils/currency';
 import { isValidWhatsappPhone } from '../../utils/validators';
+import { formatOrderNumber } from '../../utils/orderNumber';
 import type { OrderItem } from '../../types';
 
 export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -34,6 +35,10 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
       setError('Algum item do carrinho não tem estoque suficiente. Ajuste a quantidade antes de continuar.');
       return;
     }
+    if (lines.length > 50) {
+      setError('Carrinho com itens demais (máximo 50). Remova alguns antes de continuar.');
+      return;
+    }
     if (!settings.whatsapp.phone) {
       setError('A loja ainda não configurou um número de WhatsApp para receber pedidos.');
       return;
@@ -51,7 +56,7 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
 
     setSubmitting(true);
     try {
-      await createOrder({
+      const { orderNumber } = await createOrder({
         items,
         total: subtotal,
         customer: { name: name.trim(), phone: phone.trim(), address: address.trim() || undefined },
@@ -67,6 +72,7 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
         .join('\n');
 
       const message = buildOrderMessage(settings.whatsapp.orderMessageTemplate, {
+        pedido: formatOrderNumber(orderNumber),
         nome: name.trim(),
         itens: itensText,
         total: formatBRL(subtotal),
@@ -95,6 +101,7 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          maxLength={100}
           className="rounded-md border border-secondary/30 px-3 py-2"
         />
       </label>
@@ -107,6 +114,7 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
           onChange={(e) => setPhone(e.target.value)}
           placeholder="5511999998888"
           required
+          maxLength={20}
           className="rounded-md border border-secondary/30 px-3 py-2"
         />
       </label>
@@ -117,6 +125,7 @@ export function CheckoutForm({ onSuccess }: { onSuccess?: () => void }) {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           rows={2}
+          maxLength={300}
           className="rounded-md border border-secondary/30 px-3 py-2"
         />
       </label>

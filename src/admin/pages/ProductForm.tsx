@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createProduct, updateProduct } from '../../services/products';
 import { ImageUploader } from '../../components/common/ImageUploader';
 import { slugify } from '../../utils/slugify';
+import { optimizedImageUrl } from '../../utils/cloudinaryUrl';
 import type { Category, Product, ProductImage, ProductVariation } from '../../types';
 
 interface ProductFormProps {
@@ -33,7 +34,12 @@ function ImagesManager({ images, onChange }: { images: ProductImage[]; onChange:
     <div className="flex flex-wrap gap-3">
       {images.map((image, index) => (
         <div key={image.publicId} className="relative h-24 w-24">
-          <img src={image.url} alt="" className="h-full w-full rounded-md border border-gray-200 object-cover" />
+          <img
+            src={optimizedImageUrl(image.url, 200)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full rounded-md border border-gray-200 object-cover"
+          />
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 px-1 py-0.5">
             <button type="button" onClick={() => move(index, -1)} className="text-xs text-white disabled:opacity-30" disabled={index === 0}>
               ◀

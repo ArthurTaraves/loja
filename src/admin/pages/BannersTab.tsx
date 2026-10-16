@@ -8,6 +8,7 @@ import {
 } from '../../services/banners';
 import type { Banner } from '../../types';
 import { ImageUploader } from '../../components/common/ImageUploader';
+import { optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 type ImageValue = { url: string; publicId: string } | null;
 
@@ -147,7 +148,12 @@ export function BannersTab() {
                 </button>
               </div>
 
-              <img src={banner.imageDesktopUrl} alt="" className="h-12 w-24 rounded object-cover" />
+              <img
+                src={optimizedImageUrl(banner.imageDesktopUrl, 200)}
+                alt=""
+                loading="lazy"
+                className="h-12 w-24 rounded object-cover"
+              />
 
               <span className="flex-1 truncate text-sm text-gray-600">{banner.link || 'Sem link'}</span>
 

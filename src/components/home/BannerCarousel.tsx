@@ -3,12 +3,23 @@ import { listActiveBanners } from '../../services/banners';
 import type { Banner } from '../../types';
 import { DevQueryError } from '../common/DevQueryError';
 import { logQueryError } from '../../utils/logging';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 function BannerSlide({ banner }: { banner: Banner }) {
+  // Banner aparece no topo da home (acima da dobra): sem loading="lazy".
   const image = (
     <picture>
-      {banner.imageMobileUrl && <source media="(max-width: 640px)" srcSet={banner.imageMobileUrl} />}
-      <img src={banner.imageDesktopUrl} alt="" className="h-full w-full object-cover" />
+      {banner.imageMobileUrl && (
+        <source
+          media="(max-width: 640px)"
+          srcSet={optimizedImageUrl(banner.imageMobileUrl, IMAGE_WIDTH.bannerMobile)}
+        />
+      )}
+      <img
+        src={optimizedImageUrl(banner.imageDesktopUrl, IMAGE_WIDTH.bannerDesktop)}
+        alt=""
+        className="h-full w-full object-cover"
+      />
     </picture>
   );
   if (banner.link) {

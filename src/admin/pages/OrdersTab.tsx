@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { listAllOrders, updateOrderStatus } from '../../services/orders';
 import type { Order, OrderStatus } from '../../types';
 import { formatBRL } from '../../utils/currency';
+import { formatOrderNumber } from '../../utils/orderNumber';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   novo: 'Novo',
@@ -70,7 +71,9 @@ export function OrdersTab() {
             <div key={order.id} className="rounded-md border border-gray-200 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatOrderNumber(order.orderNumber)} · {order.customer.name}
+                  </p>
                   <p className="text-xs text-gray-500">{order.customer.phone}</p>
                 </div>
                 <div className="flex items-center gap-2">

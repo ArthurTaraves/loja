@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ProductImage } from '../../types';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 export function ProductGallery({ images, productName }: { images: ProductImage[]; productName: string }) {
   const sorted = [...images].sort((a, b) => a.order - b.order);
@@ -17,7 +18,12 @@ export function ProductGallery({ images, productName }: { images: ProductImage[]
   return (
     <div className="flex flex-col gap-3">
       <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary/10">
-        <img src={active.url} alt={productName} className="h-full w-full object-cover" />
+        {/* Imagem principal do produto: normalmente acima da dobra na página, não é lazy. */}
+        <img
+          src={optimizedImageUrl(active.url, IMAGE_WIDTH.galleryMain)}
+          alt={productName}
+          className="h-full w-full object-cover"
+        />
       </div>
       {sorted.length > 1 && (
         <div className="flex gap-2 overflow-x-auto">
@@ -30,7 +36,12 @@ export function ProductGallery({ images, productName }: { images: ProductImage[]
                 index === activeIndex ? 'border-primary' : 'border-transparent'
               }`}
             >
-              <img src={image.url} alt="" className="h-full w-full object-cover" />
+              <img
+                src={optimizedImageUrl(image.url, IMAGE_WIDTH.galleryThumb)}
+                alt=""
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
             </button>
           ))}
         </div>

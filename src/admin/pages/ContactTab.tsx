@@ -78,7 +78,7 @@ export function ContactTab() {
           className="rounded-md border border-gray-300 px-3 py-2 font-mono text-xs"
         />
         <span className="text-xs text-gray-500">
-          Variáveis disponíveis: {'{nome}'}, {'{itens}'}, {'{total}'}, {'{endereco}'}
+          Variáveis disponíveis: {'{pedido}'}, {'{nome}'}, {'{itens}'}, {'{total}'}, {'{endereco}'}
         </span>
       </label>
 

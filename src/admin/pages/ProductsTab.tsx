@@ -3,6 +3,7 @@ import { deleteProduct, listAllProducts } from '../../services/products';
 import { listAllCategories } from '../../services/categories';
 import type { Category, Product } from '../../types';
 import { formatBRL } from '../../utils/currency';
+import { optimizedImageUrl } from '../../utils/cloudinaryUrl';
 import { ProductForm } from './ProductForm';
 
 export function ProductsTab() {
@@ -78,7 +79,12 @@ export function ProductsTab() {
             <div key={product.id} className="flex items-center gap-3 px-3 py-2">
               <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-gray-100">
                 {product.images[0] && (
-                  <img src={product.images[0].url} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={optimizedImageUrl(product.images[0].url, 100)}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
                 )}
               </div>
               <div className="flex-1">

@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useStoreSettings } from '../../hooks/useStoreSettings';
 import { useCategories } from '../../hooks/useCategories';
 import { useCart } from '../../hooks/useCart';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 function CartLink() {
   const { itemCount } = useCart();
@@ -74,7 +75,11 @@ function DefaultHeader() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2">
           {settings.identity.logoUrl ? (
-            <img src={settings.identity.logoUrl} alt={settings.identity.storeName} className="h-10 w-auto" />
+            <img
+              src={optimizedImageUrl(settings.identity.logoUrl, IMAGE_WIDTH.logo)}
+              alt={settings.identity.storeName}
+              className="h-10 w-auto"
+            />
           ) : null}
           <span className="text-lg font-semibold text-primary">{settings.identity.storeName}</span>
         </Link>
@@ -107,8 +112,17 @@ function ImageHeader() {
     <header className="border-b border-secondary/20 bg-background">
       <Link to="/" className="block">
         <picture>
-          {header.imageMobileUrl && <source media="(max-width: 640px)" srcSet={header.imageMobileUrl} />}
-          <img src={header.imageUrl} alt={settings.identity.storeName} className="w-full object-cover" />
+          {header.imageMobileUrl && (
+            <source
+              media="(max-width: 640px)"
+              srcSet={optimizedImageUrl(header.imageMobileUrl, IMAGE_WIDTH.bannerMobile)}
+            />
+          )}
+          <img
+            src={optimizedImageUrl(header.imageUrl, IMAGE_WIDTH.bannerDesktop)}
+            alt={settings.identity.storeName}
+            className="w-full object-cover"
+          />
         </picture>
       </Link>
 

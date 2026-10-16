@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../../types';
 import { formatBRL } from '../../utils/currency';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 export function ProductCard({ product }: { product: Product }) {
   const hasPromo = typeof product.promoPrice === 'number' && product.promoPrice < product.price;
@@ -14,8 +15,9 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="aspect-square w-full overflow-hidden bg-secondary/10">
         {cover ? (
           <img
-            src={cover}
+            src={optimizedImageUrl(cover, IMAGE_WIDTH.productCardThumb)}
             alt={product.name}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (

@@ -9,6 +9,7 @@ import {
 import type { Category } from '../../types';
 import { slugify } from '../../utils/slugify';
 import { ImageUploader } from '../../components/common/ImageUploader';
+import { optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 export function CategoriesTab() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -152,7 +153,14 @@ export function CategoriesTab() {
                 </div>
 
                 <div className="h-8 w-8 shrink-0 overflow-hidden rounded bg-gray-100">
-                  {category.imageUrl && <img src={category.imageUrl} alt="" className="h-full w-full object-cover" />}
+                  {category.imageUrl && (
+                    <img
+                      src={optimizedImageUrl(category.imageUrl, 80)}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
 
                 <span className={`flex-1 text-sm ${category.active ? 'text-gray-900' : 'text-gray-400'}`}>

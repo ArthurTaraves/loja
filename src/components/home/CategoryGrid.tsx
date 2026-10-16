@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
 import { DevQueryError } from '../common/DevQueryError';
+import { IMAGE_WIDTH, optimizedImageUrl } from '../../utils/cloudinaryUrl';
 
 export function CategoryGrid() {
   const { categories, error } = useCategories();
@@ -20,7 +21,12 @@ export function CategoryGrid() {
           >
             <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-secondary/10">
               {category.imageUrl ? (
-                <img src={category.imageUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={optimizedImageUrl(category.imageUrl, IMAGE_WIDTH.categoryThumb)}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <span className="text-xl font-semibold text-secondary">{category.name.charAt(0)}</span>
               )}

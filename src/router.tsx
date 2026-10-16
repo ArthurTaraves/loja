@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { Home } from './pages/Home';
@@ -5,8 +6,11 @@ import { ProductList } from './pages/ProductList';
 import { ProductDetail } from './pages/ProductDetail';
 import { CartPage } from './pages/CartPage';
 import { NotFound } from './pages/NotFound';
-import { ProtectedRoute } from './components/common/ProtectedRoute';
-import { AdminLayout } from './admin/AdminLayout';
+import { Loading } from './components/common/Loading';
+
+// Carregado sob demanda: a área pública nunca baixa o código do admin
+// (login, setup inicial, as 7 abas, ProductForm...) até alguém visitar /admin.
+const AdminRoot = lazy(() => import('./admin/AdminRoot'));
 
 export function AppRouter() {
   return (
@@ -22,9 +26,9 @@ export function AppRouter() {
       <Route
         path="/admin/*"
         element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
+          <Suspense fallback={<Loading />}>
+            <AdminRoot />
+          </Suspense>
         }
       />
     </Routes>

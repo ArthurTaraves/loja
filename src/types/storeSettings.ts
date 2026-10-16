@@ -84,7 +84,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     phone: '',
     defaultMessage: 'Olá! Vim pelo site e gostaria de mais informações.',
     orderMessageTemplate:
-      'Olá, meu nome é {nome}!\nGostaria de fazer o seguinte pedido:\n\n{itens}\n\nTotal: {total}\n\nEndereço: {endereco}',
+      'Olá, meu nome é {nome}!\nGostaria de fazer o pedido {pedido}:\n\n{itens}\n\nTotal: {total}\n\nEndereço: {endereco}',
   },
   social: {},
   footer: {

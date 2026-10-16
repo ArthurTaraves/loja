@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, orderBy, query, runTransaction } from 'firebase/firestore';
+import { collection, doc, getDocs, orderBy, query, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { applyStockDelta } from './products';
 import type { Order, OrderItem, OrderStatus, Product } from '../types';
@@ -11,10 +11,43 @@ export async function listAllOrders(): Promise<Order[]> {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Order);
 }
 
-export async function createOrder(data: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  const now = Date.now();
-  const ref = await addDoc(ordersRef(), { ...data, createdAt: now, updatedAt: now });
-  return ref.id;
+const orderCounterRef = () => doc(db, 'system', 'orderCounter');
+
+/**
+ * Cria o pedido e atribui o próximo número sequencial (#0001, #0002...) numa
+ * única transação com system/orderCounter: lê o contador atual, grava
+ * contador+1 e cria o pedido com esse número, tudo ou nada. As rules só
+ * aceitam o contador subir de 1 em 1, então não dá pra "roubar" números.
+ */
+export async function createOrder(
+  data: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>,
+): Promise<{ id: string; orderNumber: number }> {
+  const newOrderRef = doc(ordersRef());
+
+  const orderNumber = await runTransaction(db, async (tx) => {
+    const counterSnap = await tx.get(orderCounterRef());
+    const next = (counterSnap.exists() ? (counterSnap.data().value as number) : 0) + 1;
+
+    if (counterSnap.exists()) {
+      tx.update(orderCounterRef(), { value: next });
+    } else {
+      tx.set(orderCounterRef(), { value: next });
+    }
+
+    // serverTimestamp(): as rules exigem createdAt == request.time, então o valor
+    // precisa ser resolvido pelo servidor, nunca calculado no client (Date.now()
+    // podia ser adulterado antes do write).
+    tx.set(newOrderRef, {
+      ...data,
+      orderNumber: next,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return next;
+  });
+
+  return { id: newOrderRef.id, orderNumber };
 }
 
 function groupItemsByProduct(items: OrderItem[]): Map<string, OrderItem[]> {
@@ -46,7 +79,7 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
     const restoring = newStatus === 'cancelado' && order.stockDecremented;
 
     if (!decrementing && !restoring) {
-      tx.update(orderRef, { status: newStatus, updatedAt: Date.now() });
+      tx.update(orderRef, { status: newStatus, updatedAt: serverTimestamp() });
       return;
     }
 
@@ -86,7 +119,7 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
     tx.update(orderRef, {
       status: newStatus,
       stockDecremented: decrementing,
-      updatedAt: Date.now(),
+      updatedAt: serverTimestamp(),
     });
   });
 }
